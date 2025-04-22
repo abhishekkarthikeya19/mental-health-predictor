@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mental Health Predictor</title>
+</head>
+<body>
+  <h1>Mental Health Prediction</h1>
+  <input id="text_input" placeholder="Enter text..." />
+  <button onclick="predict()">Predict</button>
+  <p id="result"></p>
+
+  <script>
+    async function predict() {
+      const text = document.getElementById("text_input").value;
+      const response = await fetch("http://<your-ec2-ip>:8000/predict/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text_input: text })
+      });
+      const data = await response.json();
+      document.getElementById("result").innerText = "Prediction: " + (data.prediction ? "Distressed" : "Normal");
+    }
+  </script>
+</body>
+</html>
