@@ -1,6 +1,12 @@
 # main.py
 from fastapi import FastAPI
+import joblib
+import os
+import torch
 
+# Make sure PyTorch is installed in your environment before running this script
+
+# Initialize FastAPI
 app = FastAPI()
 
 # Define the root route
