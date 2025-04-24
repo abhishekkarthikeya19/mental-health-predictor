@@ -21,12 +21,10 @@
 #    in the `containerDefinitions` section of the task definition.
 #
 # 4. Set up AWS authentication for GitHub Actions:
-#    a. Create an IAM user with the necessary permissions for your deployment
-#    b. Generate access keys for this IAM user
-#    c. Store these credentials in GitHub secrets:
-#       - AWS_ACCESS_KEY_ID: The access key ID
-#       - AWS_SECRET_ACCESS_KEY: The secret access key
-#    For more information, see: https://github.com/aws-actions/configure-aws-credentials#using-aws-access-keys
+#    Store your AWS credentials in GitHub secrets:
+#    - AWS_ACCESS_KEY_ID: Your AWS access key ID
+#    - AWS_SECRET_ACCESS_KEY: Your AWS secret access key
+#    Make sure the IAM user has the necessary permissions for ECR and ECS operations
 
 name: Deploy to Amazon ECS
 
@@ -44,7 +42,6 @@ env:
 
 permissions:
   contents: read
-  id-token: write  # Required for OIDC authentication with AWS
 
 jobs:
   deploy:

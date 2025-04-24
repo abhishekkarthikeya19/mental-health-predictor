@@ -16,6 +16,13 @@ if sys.platform == 'win32':
     except ImportError:
         print("Warning: runtime_patch module not found. uvloop errors may occur on Windows.")
 
+# Apply patch for logging circular import issue
+try:
+    from logging_patch import apply_logging_patch
+    apply_logging_patch()
+except ImportError:
+    print("Warning: logging_patch module not found. Circular import errors may occur.")
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import joblib
