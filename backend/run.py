@@ -1,31 +1,83 @@
 # run.py
+"""
+Script to run the FastAPI application with uvicorn.
+"""
 import sys
 import os
+import logging
+import argparse
 
-# Apply patch for anyio to avoid uvloop on Windows
-if sys.platform == 'win32':
-    try:
-        # Try file-based patching first
-        from patch_anyio import patch_anyio
-        patch_anyio()
-    except ImportError:
-        print("Warning: patch_anyio module not found. Trying runtime patching.")
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+def parse_arguments():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description="Run the Mental Health Predictor API")
+    parser.add_argument(
+        "--host", 
+        type=str, 
+        default="0.0.0.0", 
+        help="Host to bind the server to"
+    )
+    parser.add_argument(
+        "--port", 
+        type=int, 
+        default=8000, 
+        help="Port to bind the server to"
+    )
+    parser.add_argument(
+        "--reload", 
+        action="store_true", 
+        help="Enable auto-reload for development"
+    )
+    parser.add_argument(
+        "--env", 
+        type=str, 
+        choices=["development", "production"], 
+        default="development",
+        help="Environment to run in"
+    )
+    return parser.parse_args()
+
+def main():
+    """Run the application."""
+    args = parse_arguments()
     
-    try:
-        # Try runtime patching as a fallback
-        from runtime_patch import patch_anyio_at_runtime
-        patch_anyio_at_runtime()
-    except ImportError:
-        print("Warning: runtime_patch module not found. uvloop errors may occur on Windows.")
-
-# Apply patch for logging circular import issue
-try:
-    from logging_patch import apply_logging_patch
-    apply_logging_patch()
-except ImportError:
-    print("Warning: logging_patch module not found. Circular import errors may occur.")
-
-# Run the uvicorn server
-if __name__ == "__main__":
+    # Set environment variable
+    os.environ["ENVIRONMENT"] = args.env
+    
+    # Import here to ensure patches are applied first in main.py
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    
+    logger.info(f"Starting server in {args.env} mode")
+    logger.info(f"Server will be available at http://{args.host}:{args.port}")
+    
+    # Determine the correct import path based on the current directory
+    import pathlib
+    current_dir = pathlib.Path().absolute()
+    
+    if current_dir.name == "backend":
+        # Running from inside the backend directory
+        app_import_path = "main:app"
+    else:
+        # Running from the project root
+        app_import_path = "backend.main:app"
+    
+    logger.info(f"Using import path: {app_import_path}")
+    
+    # Run the uvicorn server
+    uvicorn.run(
+        app_import_path, 
+        host=args.host, 
+        port=args.port, 
+        reload=args.reload if args.env == "development" else False,
+        log_level="info",
+        workers=1
+    )
+
+if __name__ == "__main__":
+    main()
