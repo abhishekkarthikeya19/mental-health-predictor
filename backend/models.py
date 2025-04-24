@@ -6,7 +6,8 @@ import importlib.util
 from typing import Optional
 
 # Check if we're using Pydantic v1 or v2
-pydantic_v2 = importlib.util.find_spec("pydantic.v1") is not None
+pydantic_settings_spec = importlib.util.find_spec("pydantic_settings")
+pydantic_v2 = pydantic_settings_spec is not None
 
 if pydantic_v2:
     # Pydantic v2

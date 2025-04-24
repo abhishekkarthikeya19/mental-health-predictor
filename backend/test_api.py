@@ -4,7 +4,12 @@ Tests for the Mental Health Predictor API.
 """
 import pytest
 from fastapi.testclient import TestClient
-from .main import app
+try:
+    # When imported as a module
+    from .main import app
+except ImportError:
+    # When run directly
+    from main import app
 
 client = TestClient(app)
 

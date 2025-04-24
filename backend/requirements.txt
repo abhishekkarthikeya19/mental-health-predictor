@@ -4,8 +4,8 @@ scikit-learn>=1.2.2
 pandas>=2.0.0
 joblib>=1.2.0
 python-dotenv>=1.0.0
-pydantic>=1.10.7,<2.0.0  # Pin to v1 to avoid breaking changes
-pydantic-settings>=2.0.0; python_version >= "3.8"  # For Pydantic v2 compatibility
+pydantic>=2.0.0  # Using Pydantic v2
+pydantic-settings>=2.0.0  # For Pydantic v2 compatibility
 starlette>=0.27.0
 typing-extensions>=4.5.0
 pytest>=7.3.1
