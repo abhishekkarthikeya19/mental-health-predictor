@@ -23,6 +23,6 @@ def read_root():
 async def predict(request: Request):
     data = await request.json()
     text = data["text_input"]
-    df = pd.DataFrame([{"text_input": text}])
-    prediction = model.predict(df)[0]
+    # Pass just the text input to the model's predict method
+    prediction = model.predict([text])[0]
     return {"prediction": int(prediction)}
