@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+scikit-learn
+pandas
+joblib
+# uvloop is not compatible with Windows, so we don't include it here
+# If deploying to Linux/Mac, you can uncomment the following line:
+# uvloop; sys_platform != 'win32'
