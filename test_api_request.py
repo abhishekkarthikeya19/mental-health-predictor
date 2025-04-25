@@ -4,7 +4,7 @@ Test script to make a request to the API.
 import requests
 import json
 
-url = "http://127.0.0.1:8080/predict/"
+url = "http://127.0.0.1:8000/predict/"
 data = {"text_input": "I feel sad today"}
 
 try:

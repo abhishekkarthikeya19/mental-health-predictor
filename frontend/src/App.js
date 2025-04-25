@@ -17,7 +17,7 @@ const App = () => {
   const API_CONFIG = {
     baseUrl: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
       ? 'http://localhost:8000' 
-      : 'https://mental-health-detector-2.onrender.com',
+      : 'https://mental-health-predictor-api.onrender.com',
     endpoints: {
       predict: '/predict/',
       analyze: '/analyze/'

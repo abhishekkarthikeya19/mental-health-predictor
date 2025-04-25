@@ -13,7 +13,7 @@ def apply_anyio_patch():
     if sys.platform == 'win32':
         try:
             # Try file-based patching first
-            from patch_anyio import patch_anyio
+            from backend.patch_anyio import patch_anyio
             patch_anyio()
             logger.info("Applied anyio patch using patch_anyio module")
         except ImportError:
@@ -21,7 +21,7 @@ def apply_anyio_patch():
             
             try:
                 # Try runtime patching as a fallback
-                from runtime_patch import patch_anyio_at_runtime
+                from backend.runtime_patch import patch_anyio_at_runtime
                 patch_anyio_at_runtime()
                 logger.info("Applied anyio patch using runtime_patch module")
             except ImportError:
@@ -30,7 +30,7 @@ def apply_anyio_patch():
 def apply_logging_patch():
     """Apply patch for logging circular import issue."""
     try:
-        from logging_patch import apply_logging_patch
+        from backend.logging_patch import apply_logging_patch
         apply_logging_patch()
         logger.info("Applied logging patch successfully")
     except ImportError:

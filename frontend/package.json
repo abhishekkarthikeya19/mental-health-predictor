@@ -1,6 +1,7 @@
 {
   "name": "frontend",
   "version": "1.0.0",
+  "homepage": "https://yourusername.github.io/mental-health-predictor",
   "main": "index.js",
   "scripts": {
     "start": "webpack serve --mode development --open",
