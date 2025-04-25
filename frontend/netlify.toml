@@ -1,10 +1,10 @@
 [build]
   base = "frontend/"
   publish = "dist/"
-  command = "npm run build"
+  command = "npm ci && npm run build"
 
 [build.environment]
-  NODE_VERSION = "16"
+  NODE_VERSION = "18"
 
 # Handle SPA routing
 [[redirects]]
