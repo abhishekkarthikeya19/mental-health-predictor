@@ -445,6 +445,187 @@ button.secondary:hover {
   }
 }
 
+/* Dataset Info Component Styles */
+.dataset-info {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+  padding: 20px;
+  margin-bottom: 30px;
+}
+
+.info-tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--light-border);
+}
+
+.info-tabs button {
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--neutral-text);
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.info-tabs button:hover {
+  color: var(--primary-color);
+}
+
+.info-tabs button.active {
+  color: var(--primary-color);
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.info-content {
+  padding: 10px 0;
+}
+
+/* Overview Section */
+.overview-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.stats-card {
+  background-color: var(--neutral-bg);
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.stats-card h3 {
+  margin-top: 0;
+  color: var(--neutral-text);
+  font-size: 18px;
+  border-bottom: 1px solid var(--light-border);
+  padding-bottom: 10px;
+}
+
+.stat-item, .source-item, .metric-item, .info-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.stat-label, .source-name, .metric-label, .info-label {
+  color: #586069;
+}
+
+.stat-value, .source-count, .metric-value, .info-value {
+  font-weight: 600;
+  color: var(--neutral-text);
+}
+
+.word-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+}
+
+.word-item {
+  padding: 5px;
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+/* Examples Section */
+.examples-section .section-description {
+  margin-bottom: 20px;
+  color: #586069;
+}
+
+.example-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.example-item {
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.example-item.normal {
+  background-color: var(--success-bg);
+  border-left: 4px solid var(--success-text);
+}
+
+.example-item.distressed {
+  background-color: var(--danger-bg);
+  border-left: 4px solid var(--danger-text);
+}
+
+.example-text {
+  font-style: italic;
+  margin-bottom: 10px;
+}
+
+.example-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #586069;
+}
+
+/* Performance Section */
+.confusion-matrix {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.matrix-row {
+  display: flex;
+}
+
+.matrix-cell {
+  flex: 1;
+  padding: 8px;
+  text-align: center;
+  border: 1px solid var(--light-border);
+  font-size: 14px;
+}
+
+.matrix-header .matrix-cell {
+  background-color: var(--neutral-bg);
+  font-weight: 600;
+}
+
+.matrix-value {
+  font-weight: 600;
+}
+
+.true-positive {
+  background-color: var(--success-bg);
+  color: var(--success-text);
+}
+
+.true-negative {
+  background-color: var(--info-bg);
+  color: var(--info-text);
+}
+
+.false-positive {
+  background-color: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+.false-negative {
+  background-color: var(--warning-bg);
+  color: var(--warning-text);
+}
+
 /* Accessibility improvements */
 .sr-only {
   position: absolute;

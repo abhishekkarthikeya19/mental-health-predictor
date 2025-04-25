@@ -2,13 +2,19 @@ import pandas as pd
 import numpy as np
 import os
 import torch
+import time
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, accuracy_score
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
 from transformers import pipeline
 import joblib
-from datasets import Dataset
+from datasets import Dataset, load_dataset
 import logging
+import sys
+
+# Add the app directory to the path so we can import data_preparation
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from app.data_preparation import load_and_prepare_datasets
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -18,66 +24,21 @@ logger = logging.getLogger(__name__)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 logger.info(f"Using device: {device}")
 
-# Create a more comprehensive dataset
-# 0 = Normal, 1 = Distressed
-data = pd.DataFrame({
-    "text_input": [
-        # Distressed examples (label 1)
-        "I feel sad and empty inside",
-        "I'm so depressed I can barely get out of bed",
-        "Nothing brings me joy anymore",
-        "I feel worthless and hopeless about the future",
-        "I can't stop crying and I don't know why",
-        "I'm having thoughts about ending it all",
-        "I feel like a burden to everyone around me",
-        "I'm constantly anxious and can't relax",
-        "I haven't slept well in weeks",
-        "I've lost interest in activities I used to enjoy",
-        "I feel overwhelmed by simple daily tasks",
-        "My mind is filled with negative thoughts I can't control",
-        "I feel like I'm drowning in my own thoughts",
-        "Everything feels like too much effort",
-        "I'm constantly tired no matter how much I sleep",
-        "I don't see any point in continuing like this",
-        "I feel like nobody understands what I'm going through",
-        "I'm struggling to find any reason to keep going",
-        "My anxiety is making it hard to function normally",
-        "I feel trapped in my own mind with no way out",
-        
-        # Normal examples (label 0)
-        "Life is good, I'm enjoying my day",
-        "I had a productive meeting at work today",
-        "Feeling great after my workout",
-        "I'm excited about my upcoming vacation",
-        "Just finished a good book and feeling satisfied",
-        "Had a nice dinner with friends tonight",
-        "The weather is beautiful today",
-        "I accomplished all my tasks for the day",
-        "Looking forward to the weekend",
-        "I learned something new today and it was interesting",
-        "Feeling motivated to start this new project",
-        "Had a good conversation with my family",
-        "I'm proud of what I achieved today",
-        "Taking time to relax and recharge",
-        "Feeling content with where I am in life",
-        "I'm grateful for the support of my friends",
-        "Today was challenging but I handled it well",
-        "I'm making progress on my personal goals",
-        "I enjoyed spending time in nature today",
-        "I'm feeling optimistic about the future"
-    ],
-    "label": [
-        # Labels for distressed examples
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        # Labels for normal examples
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    ]
-})
+# Check if preprocessed data exists, otherwise create it
+if os.path.exists("app/data/train_data.csv") and os.path.exists("app/data/test_data.csv"):
+    logger.info("Loading preprocessed datasets...")
+    train_df = pd.read_csv("app/data/train_data.csv")
+    test_df = pd.read_csv("app/data/test_data.csv")
+    logger.info(f"Loaded {len(train_df)} training samples and {len(test_df)} test samples")
+else:
+    logger.info("Preprocessed datasets not found. Preparing datasets...")
+    train_df, test_df = load_and_prepare_datasets()
 
-# Split data into training and testing sets
-train_df, test_df = train_test_split(
-    data, test_size=0.2, random_state=42, stratify=data["label"]
-)
+# Display dataset statistics
+logger.info(f"Training set size: {len(train_df)}")
+logger.info(f"Test set size: {len(test_df)}")
+logger.info(f"Training class distribution: {train_df['label'].value_counts(normalize=True)}")
+logger.info(f"Test class distribution: {test_df['label'].value_counts(normalize=True)}")
 
 # Convert to Hugging Face datasets
 train_dataset = Dataset.from_pandas(train_df)
@@ -104,30 +65,56 @@ model = AutoModelForSequenceClassification.from_pretrained(
     label2id={"normal": 0, "distressed": 1}
 )
 
-# Define training arguments
+# Define training arguments with improved parameters
 training_args = TrainingArguments(
     output_dir="./results",
-    num_train_epochs=3,
+    num_train_epochs=5,  # Increased from 3 to 5 for better learning
     per_device_train_batch_size=16,
     per_device_eval_batch_size=16,
-    warmup_steps=500,
+    warmup_ratio=0.1,  # Use ratio instead of steps for better adaptation to dataset size
     weight_decay=0.01,
     logging_dir="./logs",
     logging_steps=10,
     evaluation_strategy="epoch",
     save_strategy="epoch",
     load_best_model_at_end=True,
-    metric_for_best_model="accuracy",
+    metric_for_best_model="f1",  # Changed to F1 score which is better for imbalanced datasets
     greater_is_better=True,
+    learning_rate=2e-5,  # Explicitly set learning rate
+    fp16=torch.cuda.is_available(),  # Use mixed precision training if GPU is available
+    gradient_accumulation_steps=2,  # Accumulate gradients to simulate larger batch sizes
+    report_to="none",  # Disable reporting to avoid dependencies
 )
 
-# Define compute_metrics function
+# Enhanced compute_metrics function with more metrics
 def compute_metrics(eval_pred):
     logits, labels = eval_pred
     predictions = np.argmax(logits, axis=-1)
+    
+    # Calculate accuracy
+    acc = accuracy_score(labels, predictions)
+    
+    # Calculate confusion matrix
+    tn, fp, fn, tp = confusion_matrix(labels, predictions, labels=[0, 1]).ravel()
+    
+    # Calculate precision, recall, and F1 score
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
+    
+    # Get detailed classification report as string
+    report = classification_report(labels, predictions)
+    
     return {
-        "accuracy": accuracy_score(labels, predictions),
-        "classification_report": classification_report(labels, predictions)
+        "accuracy": acc,
+        "precision": precision,
+        "recall": recall,
+        "f1": f1,
+        "true_negatives": tn,
+        "false_positives": fp,
+        "false_negatives": fn,
+        "true_positives": tp,
+        "classification_report": report
     }
 
 # Initialize Trainer
@@ -139,14 +126,27 @@ trainer = Trainer(
     compute_metrics=compute_metrics,
 )
 
+# Record start time for training
+start_time = time.time()
+
 # Train the model
 logger.info("Starting model training...")
 trainer.train()
 
+# Calculate training time
+training_time = time.time() - start_time
+logger.info(f"Training completed in {training_time:.2f} seconds ({training_time/60:.2f} minutes)")
+
 # Evaluate the model
 logger.info("Evaluating model...")
 eval_results = trainer.evaluate()
-logger.info(f"Evaluation results: {eval_results}")
+
+# Log detailed evaluation results
+for metric, value in eval_results.items():
+    if isinstance(value, str):
+        logger.info(f"{metric}:\n{value}")
+    else:
+        logger.info(f"{metric}: {value:.4f}")
 
 # Create a text classification pipeline
 classifier = pipeline(
@@ -156,17 +156,23 @@ classifier = pipeline(
     device=0 if torch.cuda.is_available() else -1
 )
 
-# Create a wrapper class that mimics the scikit-learn API
+# Create a wrapper class that mimics the scikit-learn API with enhanced functionality
 class TransformerClassifier:
-    def __init__(self, pipeline):
+    def __init__(self, pipeline, model_name=None, training_metrics=None):
         self.pipeline = pipeline
+        self.model_name = model_name or "distilbert-base-uncased"
+        self.training_metrics = training_metrics or {}
+        self.version = "1.0.0"
+        self.creation_date = time.strftime("%Y-%m-%d %H:%M:%S")
         
     def predict(self, texts):
+        """Predict class labels for the input texts."""
         results = self.pipeline(list(texts))
         # Convert label to int (0 for normal, 1 for distressed)
         return np.array([1 if result['label'] == 'LABEL_1' else 0 for result in results])
     
     def predict_proba(self, texts):
+        """Predict class probabilities for the input texts."""
         results = self.pipeline(list(texts))
         # Create probability arrays [prob_normal, prob_distressed]
         probs = []
@@ -176,11 +182,30 @@ class TransformerClassifier:
             else:  # normal
                 probs.append([result['score'], 1 - result['score']])
         return np.array(probs)
+    
+    def get_model_info(self):
+        """Return information about the model."""
+        return {
+            "model_name": self.model_name,
+            "version": self.version,
+            "creation_date": self.creation_date,
+            "training_metrics": self.training_metrics
+        }
 
-# Create the wrapper
-model_wrapper = TransformerClassifier(classifier)
+# Create the wrapper with additional metadata
+model_wrapper = TransformerClassifier(
+    classifier, 
+    model_name=model_name,
+    training_metrics={
+        "accuracy": eval_results.get("eval_accuracy", 0),
+        "f1": eval_results.get("eval_f1", 0),
+        "precision": eval_results.get("eval_precision", 0),
+        "recall": eval_results.get("eval_recall", 0)
+    }
+)
 
-# Test the wrapper
+# Test the wrapper on the test set
+logger.info("Testing model on test set...")
 test_texts = test_df["text_input"].tolist()
 test_labels = test_df["label"].tolist()
 
@@ -188,15 +213,39 @@ test_labels = test_df["label"].tolist()
 y_pred = model_wrapper.predict(test_texts)
 y_proba = model_wrapper.predict_proba(test_texts)
 
+# Calculate metrics
+accuracy = accuracy_score(test_labels, y_pred)
+conf_matrix = confusion_matrix(test_labels, y_pred)
+class_report = classification_report(test_labels, y_pred)
+
 # Print evaluation metrics
 print("\nModel Evaluation:")
 print("-----------------")
-print(f"Test set accuracy: {accuracy_score(test_labels, y_pred):.4f}")
+print(f"Test set accuracy: {accuracy:.4f}")
+print("\nConfusion Matrix:")
+print(conf_matrix)
 print("\nClassification Report:")
-print(classification_report(test_labels, y_pred))
+print(class_report)
+
+# Save detailed evaluation results
+eval_results_df = pd.DataFrame({
+    "text": test_texts,
+    "true_label": test_labels,
+    "predicted_label": y_pred,
+    "prob_normal": y_proba[:, 0],
+    "prob_distressed": y_proba[:, 1]
+})
+
+# Save misclassified examples for analysis
+misclassified = eval_results_df[eval_results_df["true_label"] != eval_results_df["predicted_label"]]
+logger.info(f"Number of misclassified examples: {len(misclassified)}")
 
 # Ensure the model directory exists
 os.makedirs("app/model", exist_ok=True)
+
+# Save evaluation results
+eval_results_df.to_csv("app/model/evaluation_results.csv", index=False)
+misclassified.to_csv("app/model/misclassified_examples.csv", index=False)
 
 # Save the model wrapper
 logger.info("Saving model...")
@@ -209,3 +258,22 @@ os.makedirs(model_dir, exist_ok=True)
 model.save_pretrained(model_dir)
 tokenizer.save_pretrained(model_dir)
 print(f"Transformer model and tokenizer saved to {model_dir}")
+
+# Save model metadata
+model_info = {
+    "model_name": model_name,
+    "version": "1.0.0",
+    "creation_date": time.strftime("%Y-%m-%d %H:%M:%S"),
+    "training_dataset_size": len(train_df),
+    "test_dataset_size": len(test_df),
+    "training_time_seconds": training_time,
+    "accuracy": accuracy,
+    "confusion_matrix": conf_matrix.tolist(),
+    "classification_report": class_report
+}
+
+# Save model info as JSON
+import json
+with open("app/model/model_info.json", "w") as f:
+    json.dump(model_info, f, indent=2)
+print("Model metadata saved to app/model/model_info.json")
