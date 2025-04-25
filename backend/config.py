@@ -38,7 +38,14 @@ class Settings(BaseSettings):
     """
     
     # CORS settings
-    CORS_ORIGINS: List[str] = ["http://localhost", "http://localhost:8000", "http://127.0.0.1", "http://127.0.0.1:8000"]
+    CORS_ORIGINS: List[str] = [
+        "http://localhost", 
+        "http://localhost:3000", 
+        "http://localhost:8000", 
+        "http://127.0.0.1", 
+        "http://127.0.0.1:8000",
+        "https://mental-health-predictor.netlify.app"  # Replace with your actual Netlify domain
+    ]
     CORS_ALLOW_CREDENTIALS: bool = True
     
     # Rate limiting
