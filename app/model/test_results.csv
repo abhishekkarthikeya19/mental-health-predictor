@@ -1,0 +1,10 @@
+text,prediction,confidence,prob_normal,prob_distressed
+I had a great day today and I'm feeling really good about everything.,Normal,73.00%,73.00%,27.00%
+Just finished a productive meeting with my team. We made good progress on our project.,Normal,85.00%,85.00%,15.00%
+I'm looking forward to the weekend. Planning to relax and spend time with friends.,Normal,84.00%,84.00%,16.00%
+I'm feeling tired today after a long day at work.,Normal,81.00%,81.00%,19.00%
+"I had an argument with my friend, but we'll work it out.",Normal,77.00%,77.00%,23.00%
+"The weather is gloomy today, matching my mood.",Normal,69.00%,69.00%,31.00%
+I feel completely hopeless and don't see any point in continuing.,Distressed,83.00%,17.00%,83.00%
+I can't stop crying and I don't know why. Everything feels overwhelming.,Distressed,76.00%,24.00%,76.00%
+I'm constantly anxious and can't sleep. I feel like I'm falling apart.,Distressed,81.00%,19.00%,81.00%

@@ -99,7 +99,7 @@ def main():
     print_model_info()
     
     # Define test examples
-    test_examples = [
+    example_texts = [
         # Normal examples
         "I had a great day today and I'm feeling really good about everything.",
         "Just finished a productive meeting with my team. We made good progress on our project.",
@@ -117,7 +117,7 @@ def main():
     ]
     
     # Test the model with examples
-    results = test_examples(model, test_examples)
+    results = test_examples(model, example_texts)
     
     # Save results to CSV
     if results is not None:
