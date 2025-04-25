@@ -44,7 +44,7 @@ class Settings(BaseSettings):
         "http://localhost:8000", 
         "http://127.0.0.1", 
         "http://127.0.0.1:8000",
-        "https://mental-health-predictor.netlify.app"  # Replace with your actual Netlify domain
+        "https://mentalhealthdetection19.netlify.app"
     ]
     CORS_ALLOW_CREDENTIALS: bool = True
     
