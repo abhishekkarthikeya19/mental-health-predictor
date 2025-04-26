@@ -123,7 +123,7 @@ EOL
 fi
 
 echo "Deployment completed successfully!"
-'@
+"@
 
 # Write the setup script to a file
 $setupScript | Out-File -FilePath "$DEPLOY_DIR\setup_ec2.sh" -Encoding ASCII
@@ -145,14 +145,15 @@ if ($sshAvailable) {
     scp.exe -i "$EC2_KEY_PATH" -o StrictHostKeyChecking=no $DEPLOY_ARCHIVE "${EC2_USER}@${EC2_HOST}:~/"
 
     Write-Host "Setting up the EC2 instance..."
-    ssh.exe -i "$EC2_KEY_PATH" -o StrictHostKeyChecking=no "${EC2_USER}@${EC2_HOST}" @"
+    $sshCommand = @"
 mkdir -p "$PROJECT_NAME"
 unzip -o "$DEPLOY_ARCHIVE" -d "$PROJECT_NAME"
 cd "$PROJECT_NAME"
 chmod +x setup_ec2.sh
 ./setup_ec2.sh
 "@
- else {
+    ssh.exe -i "$EC2_KEY_PATH" -o StrictHostKeyChecking=no "${EC2_USER}@${EC2_HOST}" $sshCommand
+} else {
     # Inform user to install OpenSSH or use alternative methods
     Write-Host "OpenSSH client not found. Please install OpenSSH client for Windows or use WSL to run the bash script."
     Write-Host "You can install OpenSSH client by running the following command as administrator:"

@@ -123,7 +123,7 @@ EOL
 fi
 
 echo "Deployment completed successfully!"
-'@
+"@
 
 # Write the setup script to a file
 $setupScript | Out-File -FilePath "$DEPLOY_DIR\setup_ec2.sh" -Encoding ASCII
@@ -152,7 +152,7 @@ cd "$PROJECT_NAME"
 chmod +x setup_ec2.sh
 ./setup_ec2.sh
 "@
- else {
+} else {
     # Inform user to install OpenSSH or use alternative methods
     Write-Host "OpenSSH client not found. Please install OpenSSH client for Windows or use WSL to run the bash script."
     Write-Host "You can install OpenSSH client by running the following command as administrator:"
