@@ -4,9 +4,9 @@
 # This script should be run on your local machine
 
 # Configuration - Replace these values with your own
-EC2_USER="ec2-user"
-EC2_HOST="your-ec2-instance-ip"
-EC2_KEY_PATH="path/to/your-key.pem"
+EC2_USER="ubuntu"  # Usually "ec2-user" for Amazon Linux or "ubuntu" for Ubuntu
+EC2_HOST="107.22.62.43"  # Your EC2 instance's public IP address
+EC2_KEY_PATH="C:/Users/chaithanya/Downloads/new-key-pair.pem"  # Full path to your .pem key file
 PROJECT_NAME="mental-health-predictor"
 DOCKER_IMAGE_NAME="mental-health-predictor-backend"
 DOCKER_CONTAINER_NAME="mental-health-predictor-backend"
@@ -30,15 +30,20 @@ cat > "$DEPLOY_DIR/setup_ec2.sh" << 'EOF'
 #!/bin/bash
 
 # Update system packages
-sudo yum update -y
+sudo apt-get update
+sudo apt-get upgrade -y
 
 # Install Docker if not already installed
 if ! command -v docker &> /dev/null; then
     echo "Installing Docker..."
-    sudo amazon-linux-extras install docker -y
+    sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+    sudo apt-get update
+    sudo apt-get install -y docker-ce docker-ce-cli containerd.io
     sudo systemctl start docker
     sudo systemctl enable docker
-    sudo usermod -a -G docker ec2-user
+    sudo usermod -a -G docker ubuntu
     echo "Docker installed successfully"
 else
     echo "Docker is already installed"
@@ -90,12 +95,12 @@ fi
 # Set up Nginx as a reverse proxy (if needed)
 if ! command -v nginx &> /dev/null; then
     echo "Installing Nginx..."
-    sudo amazon-linux-extras install nginx1 -y
+    sudo apt-get install -y nginx
     sudo systemctl start nginx
     sudo systemctl enable nginx
     
     # Configure Nginx as a reverse proxy
-    sudo tee /etc/nginx/conf.d/mental-health-predictor.conf > /dev/null << 'EOL'
+    sudo tee /etc/nginx/sites-available/mental-health-predictor > /dev/null << 'EOL'
 server {
     listen 80;
     server_name _;
@@ -110,7 +115,9 @@ server {
 }
 EOL
 
-    # Restart Nginx to apply the configuration
+    # Enable the site and restart Nginx to apply the configuration
+    sudo ln -s /etc/nginx/sites-available/mental-health-predictor /etc/nginx/sites-enabled/
+    sudo rm -f /etc/nginx/sites-enabled/default
     sudo systemctl restart nginx
     echo "Nginx configured successfully"
 fi
