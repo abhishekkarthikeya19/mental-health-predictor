@@ -3,7 +3,7 @@
 
 # Configuration - Replace these values with your own
 $EC2_USER = "ubuntu"  # Usually "ec2-user" for Amazon Linux or "ubuntu" for Ubuntu
-$EC2_HOST = "107.22.62.43"  # Your EC2 instance's public IP address
+$EC2_HOST = "98.80.15.66"  # Your EC2 instance's public IP address
 $EC2_KEY_PATH = "C:/Users/chaithanya/Downloads/new-key-pair.pem"  # Full path to your .pem key file
 $PROJECT_NAME = "mental-health-predictor"
 $DOCKER_IMAGE_NAME = "mental-health-predictor-backend"
