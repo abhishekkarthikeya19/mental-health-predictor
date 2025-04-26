@@ -3,8 +3,8 @@
 
 # Configuration - Replace these values with your own
 $EC2_USER = "ubuntu"  # Usually "ec2-user" for Amazon Linux or "ubuntu" for Ubuntu
-$EC2_HOST = "107.22.62.43"  # Your EC2 instance's public IP address
-$EC2_KEY_PATH = "C:/Users/chaithanya/Downloads/new-key-pair.pem"  # Full path to your .pem key file
+$EC2_HOST = "3.94.184.236"  # Your EC2 instance's public IP address
+$EC2_KEY_PATH = "C:\Users\chaithanya\Downloads\mental-health-predictor-key.pem"  # Full path to your .pem key file
 $PROJECT_NAME = "mental-health-predictor"
 $DOCKER_IMAGE_NAME = "mental-health-predictor-backend"
 $DOCKER_CONTAINER_NAME = "mental-health-predictor-backend"
@@ -168,3 +168,4 @@ Remove-Item -Path $DEPLOY_ARCHIVE -Force
 Write-Host "Deployment completed successfully!"
 Write-Host "The backend API is now available at: http://$EC2_HOST:8000"
 Write-Host "You may want to set up HTTPS using Let's Encrypt for production use."
+
