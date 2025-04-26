@@ -5,6 +5,9 @@
 $EC2_USER = "ubuntu"  # Usually "ec2-user" for Amazon Linux or "ubuntu" for Ubuntu
 $EC2_HOST = "3.94.184.236"  # Your EC2 instance's public IP address
 $EC2_KEY_PATH = "C:/Users/chaithanya/Downloads/mental-health-predictor-key.pem"  # Path to your new .pem key file
+
+# IMPORTANT: Make sure this key file exists and has the correct permissions
+# If you're using a different key file, update the path above
 $PROJECT_NAME = "mental-health-predictor"
 $DOCKER_IMAGE_NAME = "mental-health-predictor-backend"
 $DOCKER_CONTAINER_NAME = "mental-health-predictor-backend"
@@ -36,10 +39,11 @@ sudo apt-get upgrade -y
 if ! command -v docker &> /dev/null; then
     echo "Installing Docker..."
     sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu \$(lsb_release -cs) stable"
-    sudo apt-get update
-    sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+    
+    # Install Docker using the convenience script
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sudo sh get-docker.sh
+    
     sudo systemctl start docker
     sudo systemctl enable docker
     sudo usermod -a -G docker ubuntu
@@ -146,10 +150,13 @@ if ($sshAvailable) {
 
     Write-Host "Setting up the EC2 instance..."
     $sshCommand = @"
+sudo apt-get update
+sudo apt-get install -y unzip dos2unix
 mkdir -p "$PROJECT_NAME"
 unzip -o "$DEPLOY_ARCHIVE" -d "$PROJECT_NAME"
 cd "$PROJECT_NAME"
 chmod +x setup_ec2.sh
+dos2unix setup_ec2.sh
 ./setup_ec2.sh
 "@
     ssh.exe -i "$EC2_KEY_PATH" -o StrictHostKeyChecking=no "${EC2_USER}@${EC2_HOST}" $sshCommand
