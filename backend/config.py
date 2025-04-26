@@ -37,12 +37,8 @@ class Settings(BaseSettings):
     or a crisis helpline immediately.
     """
     
-    # CORS settings
-    # Define as a string to be parsed later
-    CORS_ORIGINS_STR: str = "http://localhost,http://localhost:3000,http://localhost:8000,http://127.0.0.1,http://127.0.0.1:8000,https://mentalhealthdetection19.netlify.app"
-    
-    # This will be populated in __init__ or after settings are loaded
-    CORS_ORIGINS: List[str] = []
+    # CORS settings - these will be set after initialization
+    # Not included in the BaseSettings to avoid parsing issues
     CORS_ALLOW_CREDENTIALS: bool = True
     
     # Rate limiting
@@ -77,16 +73,19 @@ class Settings(BaseSettings):
 # Create a global settings object
 settings = Settings()
 
-# Parse CORS_ORIGINS from the string
-if settings.CORS_ORIGINS_STR:
-    settings.CORS_ORIGINS = [origin.strip() for origin in settings.CORS_ORIGINS_STR.split(",") if origin.strip()]
+# Set default CORS origins
+default_cors = "http://localhost,http://localhost:3000,http://localhost:8000,http://127.0.0.1,http://127.0.0.1:8000,https://mentalhealthdetection19.netlify.app"
+
+# Get CORS origins from environment or use default
+cors_env = os.environ.get("CORS_ORIGINS_STR", default_cors)
+settings.CORS_ORIGINS = [origin.strip() for origin in cors_env.split(",") if origin.strip()]
 
 # Allow overriding settings with environment variables
 if os.environ.get("ENVIRONMENT") == "production":
     # In production, restrict CORS to specific origins if provided in environment
-    cors_env = os.environ.get("CORS_ORIGINS", "")
-    if cors_env:
-        settings.CORS_ORIGINS = [origin.strip() for origin in cors_env.split(",") if origin.strip()]
+    prod_cors_env = os.environ.get("CORS_ORIGINS", "")
+    if prod_cors_env:
+        settings.CORS_ORIGINS = [origin.strip() for origin in prod_cors_env.split(",") if origin.strip()]
     
     # Enable stricter rate limiting in production
     settings.RATE_LIMIT_ENABLED = True
