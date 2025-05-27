@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health Insights Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .dashboard-header {
+            background-color: #4a6fa5;
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        
+        .card-header {
+            border-radius: 10px 10px 0 0 !important;
+            font-weight: 600;
+            padding: 12px 20px;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .sentiment-positive {
+            color: #28a745;
+        }
+        
+        .sentiment-negative {
+            color: #dc3545;
+        }
+        
+        .sentiment-neutral {
+            color: #6c757d;
+        }
+        
+        .insight-item {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #4a6fa5;
+        }
+        
+        .warning-sign {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .critical-sign {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .positive-sign {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        
+        .action-item {
+            background-color: #e2f0fb;
+            border-left: 4px solid #0d6efd;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        
+        .resource-card {
+            height: 100%;
+            transition: transform 0.3s;
+        }
+        
+        .resource-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .text-input-area {
+            border-radius: 10px;
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .result-container {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #f8f9fa;
+        }
+        
+        .loading {
+            position: relative;
+        }
+        
+        .loading:after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+        }
+        
+        .loading:before {
+            content: "Analyzing...";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            background: #4a6fa5;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        
+        footer {
+            background-color: #343a40;
+            color: white;
+            padding: 15px 0;
+            margin-top: 30px;
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .trend-indicator {
+            font-size: 1.2rem;
+            margin-left: 5px;
+        }
+        
+        .trend-up {
+            color: #dc3545;
+        }
+        
+        .trend-down {
+            color: #28a745;
+        }
+        
+        .trend-neutral {
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1>Mental Health Insights Dashboard</h1>
+                    <p class="mb-0">Visualizing sentiment trends and providing actionable insights for healthcare professionals</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-light" id="refresh-btn">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Text Analysis Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Text Analysis Tool</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="analysis-form">
+                            <div class="mb-3">
+                                <label for="text-input" class="form-label">Enter text for mental health analysis:</label>
+                                <textarea class="form-control text-input-area" id="text-input" rows="4" placeholder="Enter social media post, message, or other text to analyze..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Analyze Text</button>
+                        </form>
+                        
+                        <div id="result-container" class="result-container">
+                            <div class="alert" id="result-alert" role="alert">
+                                <h5 class="alert-heading" id="result-heading">Analysis Result</h5>
+                                <p id="result-text"></p>
+                                <hr>
+                                <p id="recommendation-text" class="mb-0"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visualization Section -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Sentiment Trends</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="sentiment-chart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Emotional Analysis</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="emotion-chart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Insights Section -->
+        <div class="row mb-4">
+            <div class="col-md-7">
+                <div class="card">
+                    <div class="card-header bg-warning">
+                        <h5 class="mb-0">Early Warning Signs</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="warning-signs-container">
+                            <div class="insight-item warning-sign">
+                                <h6>Negative Sentiment Expressions <span class="badge bg-warning text-dark" id="negative-count">3</span></h6>
+                                <p>Frequent expressions of negative emotions may indicate developing distress.</p>
+                            </div>
+                            <div class="insight-item critical-sign">
+                                <h6>First-Person Negative Statements <span class="badge bg-danger" id="first-person-negative">2</span></h6>
+                                <p>Self-referential negative statements are strongly associated with mental distress.</p>
+                            </div>
+                            <div class="insight-item warning-sign">
+                                <h6>Expressions of Hopelessness <span class="badge bg-warning text-dark" id="hopelessness-count">1</span></h6>
+                                <p>Language indicating hopelessness or helplessness may signal depression.</p>
+                            </div>
+                            <div class="insight-item positive-sign">
+                                <h6>Positive Coping Indicators <span class="badge bg-success" id="coping-count">2</span></h6>
+                                <p>Evidence of positive coping strategies and resilience factors.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Intervention Recommendations</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="recommendations-container">
+                            <h6>Suggested Next Steps</h6>
+                            <div class="action-item">
+                                <strong>Assessment:</strong> Consider follow-up with standardized depression screening tools (PHQ-9, GAD-7)
+                            </div>
+                            <div class="action-item">
+                                <strong>Monitoring:</strong> Schedule check-in within 7 days to reassess emotional state
+                            </div>
+                            <div class="action-item">
+                                <strong>Resources:</strong> Provide access to self-help resources and crisis support information
+                            </div>
+                            <div class="action-item">
+                                <strong>Support:</strong> Encourage connection with trusted support network members
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resources Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">Mental Health Resources</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card resource-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Crisis Support</h5>
+                                        <p class="card-text">24/7 resources for immediate mental health support</p>
+                                        <ul class="list-unstyled">
+                                            <li>• National Suicide Prevention Lifeline: 988</li>
+                                            <li>• Crisis Text Line: Text HOME to 741741</li>
+                                            <li>• Veterans Crisis Line: 1-800-273-8255 (Press 1)</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card resource-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Self-Help Resources</h5>
+                                        <p class="card-text">Tools and resources for managing mental health</p>
+                                        <ul class="list-unstyled">
+                                            <li>• <a href="https://www.nimh.nih.gov" target="_blank">National Institute of Mental Health</a></li>
+                                            <li>• <a href="https://www.nami.org" target="_blank">National Alliance on Mental Illness</a></li>
+                                            <li>• <a href="https://www.mhanational.org" target="_blank">Mental Health America</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card resource-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Professional Help</h5>
+                                        <p class="card-text">Finding mental health professionals</p>
+                                        <ul class="list-unstyled">
+                                            <li>• <a href="https://findtreatment.samhsa.gov" target="_blank">SAMHSA Treatment Locator</a></li>
+                                            <li>• <a href="https://www.psychologytoday.com/us/therapists" target="_blank">Psychology Today Therapist Directory</a></li>
+                                            <li>• <a href="https://www.psychiatry.org/patients-families/find-a-psychiatrist" target="_blank">Find a Psychiatrist</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p class="mb-0">Mental Health Predictor Dashboard &copy; 2025 | <small>For educational purposes only. Not a substitute for professional mental health advice.</small></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Dashboard JavaScript -->
+    <script>
+        // Store analysis history for the session
+        let analysisHistory = [];
+        
+        // Chart objects
+        let sentimentChart = null;
+        let emotionChart = null;
+        
+        // DOM elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the dashboard
+            initializeDashboard();
+            
+            // Set up event listeners
+            setupEventListeners();
+        });
+        
+        /**
+         * Initialize the dashboard components
+         */
+        function initializeDashboard() {
+            console.log('Initializing Mental Health Predictor Dashboard');
+            
+            // Initialize charts
+            createSentimentChart();
+            createEmotionChart();
+            
+            // Load demo data
+            loadDemoData();
+            
+            // Update UI components
+            updateInsightsPanel();
+        }
+        
+        /**
+         * Set up event listeners for interactive elements
+         */
+        function setupEventListeners() {
+            // Form submission for text analysis
+            const analysisForm = document.getElementById('analysis-form');
+            if (analysisForm) {
+                analysisForm.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    const textInput = document.getElementById('text-input').value.trim();
+                    
+                    if (textInput) {
+                        analyzeText(textInput);
+                    } else {
+                        showError('Please enter some text to analyze.');
+                    }
+                });
+            }
+            
+            // Refresh button
+            const refreshBtn = document.getElementById('refresh-btn');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', function() {
+                    loadDemoData();
+                    updateCharts();
+                    updateInsightsPanel();
+                });
+            }
+        }
+        
+        /**
+         * Analyze text using the prediction API
+         * @param {string} text - The text to analyze
+         */
+        function analyzeText(text) {
+            // Show loading state
+            const resultContainer = document.getElementById('result-container');
+            resultContainer.style.display = 'block';
+            resultContainer.classList.add('loading');
+            
+            // In a real implementation, this would call your backend API
+            // For demo purposes, we'll simulate an API call
+            setTimeout(() => {
+                // Simulate API response
+                const isDistressed = text.toLowerCase().includes('sad') || 
+                                    text.toLowerCase().includes('depress') || 
+                                    text.toLowerCase().includes('anxious') || 
+                                    text.toLowerCase().includes('worry') || 
+                                    text.toLowerCase().includes('stress');
+                
+                const confidence = isDistressed ? 0.75 + (Math.random() * 0.2) : 0.65 + (Math.random() * 0.2);
+                
+                const result = {
+                    prediction: isDistressed ? 1 : 0,
+                    confidence: confidence,
+                    recommendation: isDistressed ? 
+                        "Based on your text, you may be experiencing some distress. Consider talking to someone you trust or a mental health professional." :
+                        "Your text doesn't show significant signs of distress. Continue practicing good mental health habits."
+                };
+                
+                // Process the result
+                processAnalysisResult(result, text);
+                
+                // Remove loading state
+                resultContainer.classList.remove('loading');
+            }, 1500);
+        }
+        
+        /**
+         * Process and display the analysis result
+         * @param {Object} result - The analysis result from the API
+         * @param {string} originalText - The original text that was analyzed
+         */
+        function processAnalysisResult(result, originalText) {
+            // Store in history with timestamp
+            const analysisEntry = {
+                timestamp: new Date(),
+                text: originalText,
+                prediction: result.prediction,
+                confidence: result.confidence,
+                recommendation: result.recommendation
+            };
+            
+            analysisHistory.unshift(analysisEntry); // Add to beginning of array
+            
+            // Limit history size
+            if (analysisHistory.length > 10) {
+                analysisHistory.pop();
+            }
+            
+            // Update UI
+            displayAnalysisResult(result);
+            updateCharts();
+            updateInsightsPanel();
+        }
+        
+        /**
+         * Display the analysis result in the UI
+         * @param {Object} result - The analysis result
+         */
+        function displayAnalysisResult(result) {
+            const resultContainer = document.getElementById('result-container');
+            const resultAlert = document.getElementById('result-alert');
+            const resultHeading = document.getElementById('result-heading');
+            const resultText = document.getElementById('result-text');
+            const recommendationText = document.getElementById('recommendation-text');
+            
+            // Update content
+            resultHeading.textContent = result.prediction === 1 ? 
+                'Potential Distress Detected' : 'No Significant Distress Detected';
+            
+            resultText.innerHTML = `
+                <strong>Analysis Result:</strong> ${result.prediction === 1 ? 'Potential distress' : 'No significant distress'}<br>
+                <strong>Confidence:</strong> ${(result.confidence * 100).toFixed(2)}%
+            `;
+            
+            recommendationText.textContent = result.recommendation;
+            
+            // Update styling
+            if (result.prediction === 1) {
+                resultAlert.className = 'alert alert-warning';
+            } else {
+                resultAlert.className = 'alert alert-success';
+            }
+            
+            // Show the result
+            resultContainer.style.display = 'block';
+        }
+        
+        /**
+         * Create the sentiment trend chart
+         */
+        function createSentimentChart() {
+            const ctx = document.getElementById('sentiment-chart').getContext('2d');
+            
+            sentimentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['7 days ago', '6 days ago', '5 days ago', '4 days ago', '3 days ago', '2 days ago', 'Today'],
+                    datasets: [{
+                        label: 'Sentiment Score',
+                        data: [0.2, 0.3, -0.1, -0.4, -0.5, -0.2, 0.1],
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Sentiment Trend Over Time',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        const value = context.parsed.y;
+                                        let sentiment = 'Neutral';
+                                        if (value > 0.3) sentiment = 'Positive';
+                                        if (value < -0.3) sentiment = 'Negative';
+                                        label += `${value.toFixed(2)} (${sentiment})`;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: -1,
+                            max: 1,
+                            title: {
+                                display: true,
+                                text: 'Sentiment Score (-1 to 1)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        /**
+         * Create the emotion analysis chart
+         */
+        function createEmotionChart() {
+            const ctx = document.getElementById('emotion-chart').getContext('2d');
+            
+            emotionChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Anxiety', 'Sadness', 'Anger', 'Fear', 'Joy', 'Surprise'],
+                    datasets: [{
+                        label: 'Current Analysis',
+                        data: [0.4, 0.6, 0.3, 0.5, 0.2, 0.1],
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgb(54, 162, 235)',
+                        pointBackgroundColor: 'rgb(54, 162, 235)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(54, 162, 235)'
+                    }, {
+                        label: 'Previous Analysis',
+                        data: [0.3, 0.4, 0.2, 0.3, 0.5, 0.3],
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgb(255, 99, 132)',
+                        pointBackgroundColor: 'rgb(255, 99, 132)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(255, 99, 132)'
+                    }]
+                },
+                options: {
+                    elements: {
+                        line: {
+                            borderWidth: 3
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Emotional Analysis',
+                            font: {
+                                size: 16
+                            }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 1
+                        }
+                    }
+                }
+            });
+        }
+        
+        /**
+         * Update charts based on analysis history
+         */
+        function updateCharts() {
+            updateSentimentChart();
+            updateEmotionChart();
+        }
+        
+        /**
+         * Update the sentiment trend chart with current data
+         */
+        function updateSentimentChart() {
+            if (!sentimentChart || analysisHistory.length === 0) return;
+            
+            // Prepare data for chart
+            const labels = [];
+            const data = [];
+            
+            // Sort history by timestamp
+            const sortedHistory = [...analysisHistory].sort((a, b) => a.timestamp - b.timestamp);
+            
+            // Get data points
+            sortedHistory.forEach(entry => {
+                // Format date for label
+                const date = new Date(entry.timestamp);
+                const label = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                
+                // Calculate sentiment score (-1 to 1 scale)
+                let sentimentScore;
+                if (entry.prediction === 0) {
+                    sentimentScore = entry.confidence; // Positive score for no distress
+                } else {
+                    sentimentScore = -entry.confidence; // Negative score for distress
+                }
+                
+                labels.push(label);
+                data.push(sentimentScore);
+            });
+            
+            // Update chart data
+            sentimentChart.data.labels = labels;
+            sentimentChart.data.datasets[0].data = data;
+            sentimentChart.update();
+        }
+        
+        /**
+         * Update the emotion analysis chart with current data
+         */
+        function updateEmotionChart() {
+            if (!emotionChart || analysisHistory.length === 0) return;
+            
+            // Get the most recent and second most recent entries
+            const current = analysisHistory[0];
+            const previous = analysisHistory.length > 1 ? analysisHistory[1] : null;
+            
+            // Generate simulated emotion data based on prediction and confidence
+            const currentEmotions = generateEmotionData(current);
+            
+            // Update current analysis dataset
+            emotionChart.data.datasets[0].data = [
+                currentEmotions.anxiety,
+                currentEmotions.sadness,
+                currentEmotions.anger,
+                currentEmotions.fear,
+                currentEmotions.joy,
+                currentEmotions.surprise
+            ];
+            
+            // Update previous analysis dataset if available
+            if (previous) {
+                const previousEmotions = generateEmotionData(previous);
+                emotionChart.data.datasets[1].data = [
+                    previousEmotions.anxiety,
+                    previousEmotions.sadness,
+                    previousEmotions.anger,
+                    previousEmotions.fear,
+                    previousEmotions.joy,
+                    previousEmotions.surprise
+                ];
+                emotionChart.data.datasets[1].label = 'Previous Analysis';
+            } else {
+                // If no previous analysis, use baseline values
+                emotionChart.data.datasets[1].data = [0.3, 0.3, 0.3, 0.3, 0.3, 0.3];
+                emotionChart.data.datasets[1].label = 'Baseline';
+            }
+            
+            emotionChart.update();
+        }
+        
+        /**
+         * Generate simulated emotion data based on prediction and confidence
+         * @param {Object} entry - Analysis history entry
+         * @returns {Object} - Emotion data object
+         */
+        function generateEmotionData(entry) {
+            const emotions = {
+                anxiety: 0,
+                sadness: 0,
+                anger: 0,
+                fear: 0,
+                joy: 0,
+                surprise: 0
+            };
+            
+            // Randomize with some constraints based on prediction
+            const randomFactor = 0.2; // Add some randomness
+            
+            if (entry.prediction === 1) {
+                // Distress detected - higher negative emotions
+                emotions.anxiety = 0.5 + (entry.confidence * 0.3) + (Math.random() * randomFactor);
+                emotions.sadness = 0.4 + (entry.confidence * 0.4) + (Math.random() * randomFactor);
+                emotions.anger = 0.2 + (entry.confidence * 0.2) + (Math.random() * randomFactor);
+                emotions.fear = 0.3 + (entry.confidence * 0.3) + (Math.random() * randomFactor);
+                emotions.joy = 0.3 - (entry.confidence * 0.2) + (Math.random() * randomFactor);
+                emotions.surprise = 0.2 + (Math.random() * randomFactor);
+            } else {
+                // No distress - higher positive emotions
+                emotions.anxiety = 0.3 - (entry.confidence * 0.1) + (Math.random() * randomFactor);
+                emotions.sadness = 0.2 - (entry.confidence * 0.1) + (Math.random() * randomFactor);
+                emotions.anger = 0.1 + (Math.random() * randomFactor);
+                emotions.fear = 0.2 + (Math.random() * randomFactor);
+                emotions.joy = 0.5 + (entry.confidence * 0.3) + (Math.random() * randomFactor);
+                emotions.surprise = 0.3 + (Math.random() * randomFactor);
+            }
+            
+            // Ensure values are between 0 and 1
+            Object.keys(emotions).forEach(key => {
+                emotions[key] = Math.max(0, Math.min(1, emotions[key]));
+            });
+            
+            return emotions;
+        }
+        
+        /**
+         * Update the insights panel with current analysis data
+         */
+        function updateInsightsPanel() {
+            // Only update if we have analysis history
+            if (analysisHistory.length === 0) return;
+            
+            // Count metrics from history
+            const negativeCount = analysisHistory.filter(entry => entry.prediction === 1).length;
+            const firstPersonNegative = Math.floor(negativeCount * 0.7); // Simplified calculation
+            const hopelessnessCount = Math.floor(negativeCount * 0.5); // Simplified calculation
+            const copingCount = analysisHistory.filter(entry => entry.prediction === 0).length;
+            
+            // Update UI elements
+            document.getElementById('negative-count').textContent = negativeCount;
+            document.getElementById('first-person-negative').textContent = firstPersonNegative;
+            document.getElementById('hopelessness-count').textContent = hopelessnessCount;
+            document.getElementById('coping-count').textContent = copingCount;
+            
+            // Update recommendations based on analysis
+            updateRecommendations(negativeCount, analysisHistory.length);
+        }
+        
+        /**
+         * Update the recommendations based on analysis results
+         * @param {number} negativeCount - Number of negative predictions
+         * @param {number} totalCount - Total number of analyses
+         */
+        function updateRecommendations(negativeCount, totalCount) {
+            const recommendationsContainer = document.getElementById('recommendations-container');
+            
+            // Calculate ratio
+            const negativeRatio = negativeCount / totalCount;
+            
+            // Clear existing recommendations
+            recommendationsContainer.innerHTML = '<h6>Suggested Next Steps</h6>';
+            
+            // Generate recommendations based on ratio
+            let recommendations = [];
+            
+            if (negativeRatio > 0.7) {
+                // High risk
+                recommendations = [
+                    '<strong>Assessment:</strong> Conduct comprehensive mental health evaluation using standardized tools (PHQ-9, GAD-7)',
+                    '<strong>Monitoring:</strong> Schedule follow-up within 48 hours to reassess emotional state',
+                    '<strong>Resources:</strong> Provide immediate access to crisis support information',
+                    '<strong>Support:</strong> Consider activating support network with patient consent',
+                    '<strong>Referral:</strong> Expedite referral to mental health specialist'
+                ];
+            } else if (negativeRatio > 0.3) {
+                // Moderate risk
+                recommendations = [
+                    '<strong>Assessment:</strong> Consider follow-up with standardized depression screening tools (PHQ-9, GAD-7)',
+                    '<strong>Monitoring:</strong> Schedule check-in within 7 days to reassess emotional state',
+                    '<strong>Resources:</strong> Provide access to self-help resources and crisis support information',
+                    '<strong>Support:</strong> Encourage connection with trusted support network members',
+                    '<strong>Self-care:</strong> Discuss stress management and coping strategies'
+                ];
+            } else {
+                // Low risk
+                recommendations = [
+                    '<strong>Assessment:</strong> Continue routine mental health screening at regular intervals',
+                    '<strong>Monitoring:</strong> Maintain awareness of changes in communication patterns',
+                    '<strong>Resources:</strong> Share preventive mental health resources',
+                    '<strong>Support:</strong> Reinforce existing positive support networks',
+                    '<strong>Self-care:</strong> Encourage continued wellness practices'
+                ];
+            }
+            
+            // Add recommendations to DOM
+            recommendations.forEach(rec => {
+                const div = document.createElement('div');
+                div.className = 'action-item';
+                div.innerHTML = rec;
+                recommendationsContainer.appendChild(div);
+            });
+        }
+        
+        /**
+         * Load demo data for initial visualization
+         */
+        function loadDemoData() {
+            // Sample data for demonstration
+            const demoData = [
+                {
+                    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), // 7 days ago
+                    text: "I've been feeling pretty good lately. Work has been going well.",
+                    prediction: 0,
+                    confidence: 0.89,
+                    recommendation: "Your text doesn't show significant signs of distress. Continue practicing good mental health habits."
+                },
+                {
+                    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5), // 5 days ago
+                    text: "I'm feeling a bit stressed about the upcoming deadline, but I'm managing.",
+                    prediction: 0,
+                    confidence: 0.72,
+                    recommendation: "Your text doesn't show significant signs of distress. Continue practicing good mental health habits."
+                },
+                {
+                    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
+                    text: "I'm really struggling today. Everything feels overwhelming and I can't focus.",
+                    prediction: 1,
+                    confidence: 0.81,
+                    recommendation: "Based on your text, you may be experiencing some distress. Consider talking to someone you trust or a mental health professional."
+                },
+                {
+                    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1), // 1 day ago
+                    text: "Feeling a bit better today, but still having trouble sleeping and concentrating.",
+                    prediction: 1,
+                    confidence: 0.65,
+                    recommendation: "Based on your text, you may be experiencing some distress. Consider talking to someone you trust or a mental health professional."
+                }
+            ];
+            
+            // Add to history
+            analysisHistory = [...demoData];
+            
+            // Update UI
+            updateCharts();
+            updateInsightsPanel();
+        }
+        
+        /**
+         * Show an error message to the user
+         * @param {string} message - The error message
+         */
+        function showError(message) {
+            const resultContainer = document.getElementById('result-container');
+            const resultAlert = document.getElementById('result-alert');
+            const resultHeading = document.getElementById('result-heading');
+            const resultText = document.getElementById('result-text');
+            const recommendationText = document.getElementById('recommendation-text');
+            
+            resultHeading.textContent = 'Error';
+            resultText.textContent = message;
+            recommendationText.textContent = '';
+            resultAlert.className = 'alert alert-danger';
+            
+            resultContainer.style.display = 'block';
+            resultContainer.classList.remove('loading');
+        }
+    </script>
+</body>
+</html>

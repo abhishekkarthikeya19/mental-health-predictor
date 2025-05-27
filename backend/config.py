@@ -6,15 +6,15 @@ import os
 from typing import List, Dict, Any
 import importlib.util
 
-# Check if pydantic-settings is available
-pydantic_settings_spec = importlib.util.find_spec("pydantic_settings")
-if pydantic_settings_spec is not None:
-    # For Pydantic v2
+# Try to import from pydantic_settings (Pydantic v2)
+try:
     from pydantic_settings import BaseSettings
     from pydantic import Field, ConfigDict
-else:
-    # For Pydantic v1
+    using_pydantic_v2 = True
+except ImportError:
+    # Fall back to Pydantic v1
     from pydantic import BaseSettings, Field
+    using_pydantic_v2 = False
 
 class Settings(BaseSettings):
     """
@@ -37,8 +37,8 @@ class Settings(BaseSettings):
     or a crisis helpline immediately.
     """
     
-    # CORS settings - these will be set after initialization
-    # Not included in the BaseSettings to avoid parsing issues
+    # CORS settings
+    CORS_ORIGINS: List[str] = Field(default_factory=list)
     CORS_ALLOW_CREDENTIALS: bool = True
     
     # Rate limiting
@@ -58,7 +58,7 @@ class Settings(BaseSettings):
     NORMAL_RECOMMENDATION: str = "Your text doesn't show significant signs of distress. Continue practicing good mental health habits."
     
     # Configuration - handle both Pydantic v1 and v2
-    if pydantic_settings_spec is not None:
+    if using_pydantic_v2:
         # For Pydantic v2
         model_config = ConfigDict(
             env_file=".env",
@@ -78,6 +78,7 @@ default_cors = "http://localhost,http://localhost:3000,http://localhost:8000,htt
 
 # Get CORS origins from environment or use default
 cors_env = os.environ.get("CORS_ORIGINS_STR", default_cors)
+# Initialize CORS_ORIGINS with default values
 settings.CORS_ORIGINS = [origin.strip() for origin in cors_env.split(",") if origin.strip()]
 
 # Allow overriding settings with environment variables
