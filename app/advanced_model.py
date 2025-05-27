@@ -73,7 +73,7 @@ class ModelTrainer:
                 features, labels, test_size=test_size, random_state=42, stratify=labels
             )
         else:
-            # Use texts directly (for transformer models)
+            # Use texts directpip ly (for transformer models)
             X_train, X_test, y_train, y_test = train_test_split(
                 texts, labels, test_size=test_size, random_state=42, stratify=labels
             )
