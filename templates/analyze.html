@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Text Analysis</h2>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="text_input" class="form-label">Enter text to analyze:</label>
+                            <textarea class="form-control" id="text_input" name="text_input" rows="6" 
+                                    placeholder="Enter social media post, message, or any text..."
+                                    required>{{ text_input or '' }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Analyze Text
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        {% if result %}
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Analysis Results</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Risk Level:</strong>
+                        <span class="badge {% if result.risk_prediction == 1 %}bg-danger{% else %}bg-success{% endif %}">
+                            {{ result.risk_level }}
+                        </span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Risk Score:</strong> {{ "%.1f"|format(result.risk_score * 100) }}%
+                    </div>
+                    <div class="mb-3">
+                        <strong>Sentiment:</strong> {{ "%.3f"|format(result.sentiment_score) }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>Confidence:</strong> {{ "%.1f"|format(result.confidence * 100) }}%
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+# Pipeline Configuration
+data_collection:
+  twitter:
+    max_results: 5000
+    keywords: ['mental health', 'depression', 'anxiety', 'feeling down']
+  reddit:
+    max_posts: 3000
+    subreddits: ['depression', 'anxiety', 'mentalhealth']
+
+preprocessing:
+  min_text_length: 10
+  min_tokens: 3
+  remove_spam: true
+
+feature_extraction:
+  tfidf_max_features: 1000
+  ngram_range: [1, 2]
+
+model_training:
+  test_size: 0.2
+  random_state: 42
+  cv_folds: 5
+
+ethics:
+  data_retention_days: 365
+  anonymization_required: true
+  audit_logging: true

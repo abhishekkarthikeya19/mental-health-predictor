@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero-section text-center">
+    <div class="container">
+        <h1 class="display-4 mb-4">Mental Health Detection System</h1>
+        <p class="lead mb-4">AI-powered analysis for early mental health risk detection</p>
+        {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('register') }}" class="btn btn-light btn-lg me-3">Get Started</a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">Login</a>
+        {% else %}
+            <a href="{{ url_for('analyze') }}" class="btn btn-light btn-lg">Start Analysis</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-comments fa-3x text-primary mb-3"></i>
+                    <h5>Text Analysis</h5>
+                    <p>Analyze social media posts and text for mental health indicators</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                    <h5>Real-time Monitoring</h5>
+                    <p>Track trends and patterns in mental health discussions</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-shield-alt fa-3x text-info mb-3"></i>
+                    <h5>Privacy First</h5>
+                    <p>Ethical AI with complete data anonymization and privacy protection</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

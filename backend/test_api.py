@@ -2,7 +2,6 @@
 """
 Tests for the Mental Health Predictor API.
 """
-import pytest
 from fastapi.testclient import TestClient
 try:
     # When imported as a module
@@ -68,4 +67,5 @@ def test_predict_legacy_empty_input():
     assert response.status_code == 400  # Bad request
 
 if __name__ == "__main__":
+    import pytest
     pytest.main(["-v", "test_api.py"])

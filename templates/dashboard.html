@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Dashboard</h2>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <a href="{{ url_for('analyze') }}" class="btn btn-primary">
+                <i class="fas fa-search"></i> Analyze Text
+            </a>
+            <a href="{{ url_for('batch_analysis') }}" class="btn btn-secondary">
+                <i class="fas fa-layer-group"></i> Batch Analysis
+            </a>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5>Your Analysis Jobs</h5>
+        </div>
+        <div class="card-body">
+            {% if jobs %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Job Name</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in jobs %}
+                            <tr>
+                                <td>{{ job.job_name }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if job.status == 'completed' %}bg-success
+                                        {% elif job.status == 'running' %}bg-warning
+                                        {% elif job.status == 'failed' %}bg-danger
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ job.status.title() }}
+                                    </span>
+                                </td>
+                                <td>{{ job.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if job.status == 'completed' %}
+                                        <a href="{{ url_for('view_results', job_id=job.id) }}" class="btn btn-sm btn-outline-primary">
+                                            View Results
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p>No analysis jobs yet. <a href="{{ url_for('analyze') }}">Start your first analysis</a></p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
